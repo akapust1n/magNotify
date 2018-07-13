@@ -27,6 +27,14 @@ def regular_call(sc,bot):
     s.enter(600, 1, regular_call,(sc,bot))
 
 
+@bot.message_handler(commands=['retards'])
+def handle_current_retards_list(message):
+    with open('counter.txt', "r+") as counter:
+        retards = int(counter.readline())
+        bot.send_message(71301900, "На данный момент на ИУ7 документы подали " + str(retards) + " человек")
+        bot.send_message(-1001144863254, "На данный момент на ИУ7 документы подали " + str(retards) + " человек")
+
+
 s = sched.scheduler(time.time, time.sleep)
 s.enter(600, 1, regular_call, (s,bot))
 s.run()
