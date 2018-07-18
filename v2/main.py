@@ -9,6 +9,7 @@ import sys
 from random import randint
 import sqlite3
 import datetime
+import time
 
 token = str(sys.argv[1])
 bot = telebot.TeleBot(token,threaded=False)
@@ -16,6 +17,8 @@ conn = sqlite3.connect('ban.db')
 c = conn.cursor()
 c.execute('''CREATE TABLE IF NOT EXISTS 
              banTable( id int primary key, dt datetime default current_timestamp)''')
+c.execute('''CREATE TABLE IF NOT EXISTS
+             floodTable(id int primary key, dt datetime default current_timestamp)''')
 
 def download_file(url):
     r = requests.get(url, stream=True)
@@ -43,7 +46,7 @@ def regular_call(sc,bot):
 
 
 @bot.message_handler(commands=['getstat'])
-def handle_current_retards_list(message):
+def handle_current_getstat_list(message):
     count_new = int(subprocess.Popen("grep  'ИУ7' rr.txt | wc -l ", shell=True, stdout=subprocess.PIPE).communicate()[0].decode('utf-8','ignore'))
     count_in = int(subprocess.Popen("grep  'ИУ7-И' rr.txt | wc -l ",shell=True, stdout=subprocess.PIPE).communicate()[0].decode('utf-8','ignore'))
     count_cp = int(subprocess.Popen("grep 'ИУ7 (ЦП)' rr.txt | wc -l ", shell=True, stdout=subprocess.PIPE).communicate()[0].decode('utf-8','ignore'))
@@ -55,8 +58,9 @@ def handle_current_retards_list(message):
     count_new = int(subprocess.Popen("grep  'ИУ7' rr.txt | wc -l ", shell=True, stdout=subprocess.PIPE).communicate()[0].decode('utf-8','ignore'))
     count_in = int(subprocess.Popen("grep  'ИУ7-И' rr.txt | wc -l ",shell=True, stdout=subprocess.PIPE).communicate()[0].decode('utf-8','ignore'))
     count_cp = int(subprocess.Popen("grep 'ИУ7 (ЦП)' rr.txt | wc -l ", shell=True, stdout=subprocess.PIPE).communicate()[0].decode('utf-8','ignore'))
-    print("Request\n", message)
+   # print("Request\n", message)
     proh = randint(1,100)
+    print("proh ",proh)
     if proh>3:
         conn = sqlite3.connect('ban.db') 
         c = conn.cursor()
@@ -79,7 +83,7 @@ def handle_current_retards_list(message):
         if (proh>3 and proh<11):
             c.execute("INSERT OR IGNORE  INTO banTable (id,dt) VALUES(?, CURRENT_TIMESTAMP)",(str(message.from_user.id),))
             c.execute("UPDATE banTable SET dt=CURRENT_TIMESTAMP WHERE id={id}".format(id=message.from_user.id))
-            bot.reply_to(message,"ПРИЗ - БАН на 3 дня�")
+            bot.reply_to(message,"PRIZ - BAN NA 3 DNYA")
             conn.commit()
             return
         if (proh>10 and proh<21):
@@ -89,8 +93,10 @@ def handle_current_retards_list(message):
         else:
             bot.reply_to(message," Всего заявок: "+str(count_new) +" . Из них иностранцев " + str(count_in) + " , целевиков " + str(count_cp))
     else:
-        banExpired = datetime.datetime.now() + 60*60*24
-        bot.restrict_chat_member(message.chat.id,message.from_user.id, until_date=banExpired)
+        banExpired = datetime.datetime.now() + datetime.timedelta(hours=24)
+        banExpiredT = time.mktime(banExpired.timetuple())         
+        print("MUTE WIN")                 
+        bot.restrict_chat_member(message.chat.id,message.from_user.id, until_date=banExpiredT)
         bot.reply_to(message,"СУПЕРПРИЗ - МУТ НА ДЕНЬ !")
 
 def timer(bot):
